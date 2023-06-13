@@ -47,6 +47,16 @@ class qtype_rgessay extends question_type {
         parent::get_question_options($question);
     }
 
+    public function save_defaults_for_new_questions(stdClass $fromform): void {
+        parent::save_defaults_for_new_questions($fromform);
+        $this->set_default_value('responseformat', $fromform->responseformat);
+        $this->set_default_value('responserequired', $fromform->responserequired);
+        $this->set_default_value('responsefieldlines', $fromform->responsefieldlines);
+        $this->set_default_value('attachments', $fromform->attachments);
+        $this->set_default_value('attachmentsrequired', $fromform->attachmentsrequired);
+        $this->set_default_value('maxbytes', $fromform->maxbytes);
+    }
+
     public function save_question_options($formdata) {
         global $DB;
         $context = $formdata->context;
@@ -61,6 +71,8 @@ class qtype_rgessay extends question_type {
         $options->responseformat = $formdata->responseformat;
         $options->responserequired = $formdata->responserequired;
         $options->responsefieldlines = $formdata->responsefieldlines;
+        $options->minwordlimit = isset($formdata->minwordenabled) ? $formdata->minwordlimit : null;
+        $options->maxwordlimit = isset($formdata->maxwordenabled) ? $formdata->maxwordlimit : null;
         $options->attachments = $formdata->attachments;
         $options->attachmentsrequired = $formdata->attachmentsrequired;
         if (!isset($formdata->filetypeslist)) {
@@ -68,14 +80,7 @@ class qtype_rgessay extends question_type {
         } else {
             $options->filetypeslist = $formdata->filetypeslist;
         }
-
-        // Removed graderinfo as it as been removed from form
-
-        /*
-        $options->graderinfo = $this->import_or_save_files($formdata->graderinfo,
-            $context, 'qtype_essay', 'graderinfo', $formdata->id);
-        $options->graderinfoformat = $formdata->graderinfo['format'];
-        */
+        $options->maxbytes = $formdata->maxbytes ?? 0;
 
         $options->responsetemplate = $formdata->responsetemplate['text'];
         $options->responsetemplateformat = $formdata->responsetemplate['format'];
@@ -92,6 +97,8 @@ class qtype_rgessay extends question_type {
         $question->responseformat = $questiondata->options->responseformat;
         $question->responserequired = $questiondata->options->responserequired;
         $question->responsefieldlines = $questiondata->options->responsefieldlines;
+        $question->minwordlimit = $questiondata->options->minwordlimit;
+        $question->maxwordlimit = $questiondata->options->maxwordlimit;
         $question->attachments = $questiondata->options->attachments;
         $question->attachmentsrequired = $questiondata->options->attachmentsrequired;
 
@@ -99,6 +106,7 @@ class qtype_rgessay extends question_type {
         $question->responsetemplateformat = $questiondata->options->responsetemplateformat;
         $filetypesutil = new \core_form\filetypes_util();
         $question->filetypeslist = $filetypesutil->normalize_file_types($questiondata->options->filetypeslist);
+        $question->maxbytes = $questiondata->options->maxbytes;
 
         $question->rubricid = $questiondata->options->rubricid;
     }
